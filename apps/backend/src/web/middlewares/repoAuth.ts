@@ -26,7 +26,7 @@ export const repoAuth = [
     if (!bearerToken) {
       throw new HttpError(
         401,
-        `Missing bearer token. Please provide a token in the Authorization header.`,
+        `Missing bearer token. Please provide a token in the Authorization header. See https://app.argos-ci.com`,
       );
     }
 
@@ -38,10 +38,17 @@ export const repoAuth = [
       ? await strategy.getProject(bearerToken)
       : await Project.query().findOne({ token: bearerToken });
 
+    if (!project && strategy) {
+      throw new HttpError(
+        401,
+        `Project not found. Ensure that your project is configured in Argos (https://app.argos-ci.com). If the issue persists, you can add ARGOS_TOKEN as environment variable to your CI. (token: "${bearerToken}")`,
+      );
+    }
+
     if (!project) {
       throw new HttpError(
         401,
-        `Repository not found (token: "${bearerToken}")`,
+        `Project not found. If the issue persists, verify your token: "${bearerToken}".`,
       );
     }
 
